@@ -8,8 +8,19 @@ const pathCharacter = '*';
 class Field {
     constructor(field) {
         this.field = field;
-        this.fieldSize = { x: 3, y: 3 };
-        this.currentPosition = { x: 0, y: 0 };
+        this.fieldSize = { width: field[0].length, height: field.length };
+        this.currentPosition = this.findStartPosition(field);
+    }
+
+    findStartPosition(field) {
+        let startPosition = {};
+        
+        startPosition.y = field.findIndex(row => {
+            startPosition.x = row.indexOf(pathCharacter);
+            return startPosition.x === -1 ? false : true;
+        });
+
+        return startPosition;
     }
 
     play() {
@@ -69,8 +80,8 @@ class Field {
             y: this.currentPosition.y + delta.y
         };
 
-        if (newPosition.x < 0 || newPosition.x >= this.fieldSize.x ||
-            newPosition.y < 0 || newPosition.y >= this.fieldSize.y) {
+        if (newPosition.x < 0 || newPosition.x >= this.fieldSize.width ||
+            newPosition.y < 0 || newPosition.y >= this.fieldSize.height) {
             this.endGame('Out of bounds');
         } else if (this.field[newPosition.y][newPosition.x] === hole) {
             this.endGame('You fell in a hole.');
@@ -91,13 +102,34 @@ class Field {
         this.field[this.currentPosition.y][this.currentPosition.x] = pathCharacter;
         this.print();    
     }
+
+    static generateField(width, height, holeFraction) {
+        let numCells = width * height;
+        let numHoles = Math.floor(numCells * holeFraction);
+        let numFieldCharacters = numCells - numHoles - 2;
+        
+        let fieldCells = [pathCharacter, hat];
+        for (let i = 0; i < numHoles; i++) {
+            fieldCells.push(hole);
+        }
+        for (let i = 0; i < numFieldCharacters; i++) {
+            fieldCells.push(fieldCharacter);
+        }
+
+        let field = [];
+        for (let i = 0; i < height; i++) {
+            let newRow = [];
+            field.push(newRow);
+            for (let j = 0; j < width; j++) {
+                let randomCellIndex = Math.floor(Math.random() * fieldCells.length);
+                let newCell = fieldCells.splice(randomCellIndex, 1)[0];
+                field[i].push(newCell);
+            }
+        }
+
+        return field;
+    }
 }
 
-testField = [
-  ['*', '░', 'O'],
-  ['░', 'O', '░'],
-  ['░', '^', '░'],
-];
-
-myField = new Field(testField);
+myField = new Field(Field.generateField(10, 10, 0.3));
 myField.play();
